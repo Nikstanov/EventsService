@@ -1,0 +1,6 @@
+/vendor/
+/build/bookingservice
+/build/bookingservice.exe
+/db_data/
+
+.idea
