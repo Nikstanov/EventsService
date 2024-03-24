@@ -3,43 +3,29 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
-	"os"
 	"time"
 )
 
-const (
-	PostgresUser     = "POSTGRES_USER"
-	PostgresPassword = "POSTGRES_PASSWORD"
-	PostgresDb       = "POSTGRES_DB"
-)
+type DatabaseConfig struct {
+	Port     string `env:"DATABASE_PORT"`
+	Dbname   string `env:"POSTGRES_DB"`
+	User     string `env:"POSTGRES_USER"`
+	Password string `env:"POSTGRES_PASSWORD"`
+}
 
-var (
-	dbname   string
-	user     string
-	password string
-)
+var cfg DatabaseConfig
 
 var ConnectionPool *pgxpool.Pool
 
-const (
-// sslmode  = "verify-full"
-)
-
 func getConfig() *pgxpool.Config {
-	dbname, exist := os.LookupEnv(PostgresDb)
-	if !exist {
-		panic("Database info doesn't exist")
-	}
-	user, exist = os.LookupEnv(PostgresUser)
-	if !exist {
-		panic("User info doesn't exist")
-	}
-	password, exist = os.LookupEnv(PostgresPassword)
-	if !exist {
-		panic("Password info doesn't exist")
+	err := cleanenv.ReadEnv(&cfg)
+	if err != nil {
+		panic(err)
+		return nil
 	}
 
 	const defaultMaxConns = int32(4)
@@ -49,7 +35,7 @@ func getConfig() *pgxpool.Config {
 	const defaultHealthCheckPeriod = time.Minute
 	const defaultConnectTimeout = time.Second * 5
 
-	conf, err := pgxpool.ParseConfig(fmt.Sprintf("postgres://%s:%s@localhost:5432/%s", user, password, dbname))
+	conf, err := pgxpool.ParseConfig(fmt.Sprintf("postgres://%s:%s@localhost:%s/%s", cfg.User, cfg.Password, cfg.Port, cfg.Dbname))
 	if err != nil {
 		log.Fatal("Failed to create a config, error: ", err)
 	}

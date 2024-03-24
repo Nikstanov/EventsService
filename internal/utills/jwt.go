@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	SECRET_KEY = "SECRET_KEY"
+	SecretKey = "JWT_SECRET"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 
 func InitJWT() {
 	var exists bool
-	secretKey, exists = os.LookupEnv(SECRET_KEY)
+	secretKey, exists = os.LookupEnv(SecretKey)
 	if !exists {
 		panic("The secret key is not set")
 	}

@@ -6,7 +6,10 @@ import (
 	"BookingService/internal/utills"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"os"
 )
+
+const ServerPort = "SERVER_PORT"
 
 func main() {
 	server := gin.Default()
@@ -19,7 +22,11 @@ func main() {
 
 	routes.RegisterRoutes(server)
 
-	err = server.Run(":8080")
+	port, exists := os.LookupEnv(ServerPort)
+	if !exists {
+		panic("The secret key is not set")
+	}
+	err = server.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
 		panic("Server didn't start")
 	}
