@@ -10,8 +10,8 @@ import (
 
 type User struct {
 	ID       int
-	Email    string `binding:"required"`
-	Password string `binding:"required"`
+	Email    string `binding:"required" valid:"email"`
+	Password string `binding:"required" valid:"stringlength(8|15)"`
 }
 
 func (u User) Save() error {

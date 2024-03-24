@@ -9,9 +9,9 @@ import (
 
 type Event struct {
 	ID          int
-	Name        string    `binding:"required"`
-	Description string    `binding:"required"`
-	Location    string    `binding:"required"`
+	Name        string    `binding:"required" valid:"stringlength(0|30)"`
+	Description string    `binding:"required" valid:"stringlength(0|100)"`
+	Location    string    `binding:"required" valid:"stringlength(0|30)"`
 	DateTime    time.Time `binding:"required"`
 	UserID      int
 }

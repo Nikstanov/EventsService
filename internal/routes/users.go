@@ -3,6 +3,7 @@ package routes
 import (
 	"BookingService/internal/models"
 	"BookingService/internal/utills"
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,6 +13,11 @@ func signUp(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&user)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request data"})
+		return
+	}
+	_, err = govalidator.ValidateStruct(user)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -30,6 +36,12 @@ func login(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request data"})
 		return
 	}
+	_, err = govalidator.ValidateStruct(user)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
 	id, err := user.ValidateCredentials()
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})

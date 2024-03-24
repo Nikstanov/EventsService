@@ -2,6 +2,7 @@ package routes
 
 import (
 	"BookingService/internal/models"
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -21,6 +22,11 @@ func createEvent(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&event)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request data"})
+		return
+	}
+	_, err = govalidator.ValidateStruct(event)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	event.UserID = ctx.GetInt("userID")
@@ -81,6 +87,12 @@ func updateEvent(ctx *gin.Context) {
 		return
 	}
 	event.ID = int(id)
+
+	_, err = govalidator.ValidateStruct(event)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
 
 	oldEvent, err := models.GetEventById(event.ID)
 	if err != nil {
