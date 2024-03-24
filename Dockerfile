@@ -2,7 +2,7 @@ FROM golang:alpine AS builder
 
 WORKDIR /build
 
-COPY .. .
+COPY . .
 
 RUN go build -o eventsService ./cmd/eventsservice/main.go
 
