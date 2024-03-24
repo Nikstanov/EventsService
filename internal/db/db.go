@@ -15,6 +15,7 @@ type DatabaseConfig struct {
 	Dbname   string `env:"POSTGRES_DB"`
 	User     string `env:"POSTGRES_USER"`
 	Password string `env:"POSTGRES_PASSWORD"`
+	DBAddr   string `env:"POSTGRES_ADDR"`
 }
 
 var cfg DatabaseConfig
@@ -35,7 +36,7 @@ func getConfig() *pgxpool.Config {
 	const defaultHealthCheckPeriod = time.Minute
 	const defaultConnectTimeout = time.Second * 5
 
-	conf, err := pgxpool.ParseConfig(fmt.Sprintf("postgres://%s:%s@localhost:%s/%s", cfg.User, cfg.Password, cfg.Port, cfg.Dbname))
+	conf, err := pgxpool.ParseConfig(fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.User, cfg.Password, cfg.DBAddr, cfg.Port, cfg.Dbname))
 	if err != nil {
 		log.Fatal("Failed to create a config, error: ", err)
 	}

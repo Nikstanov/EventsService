@@ -12,6 +12,7 @@ import (
 const ServerPort = "SERVER_PORT"
 
 func main() {
+
 	server := gin.Default()
 
 	utills.InitJWT()
