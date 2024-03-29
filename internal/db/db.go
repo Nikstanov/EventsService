@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,16 +12,20 @@ import (
 )
 
 type DatabaseConfig struct {
-	Port     string `env:"DATABASE_PORT"`
-	Dbname   string `env:"POSTGRES_DB"`
-	User     string `env:"POSTGRES_USER"`
-	Password string `env:"POSTGRES_PASSWORD"`
-	DBAddr   string `env:"POSTGRES_ADDR"`
+	Port          string `env:"DATABASE_PORT"`
+	Dbname        string `env:"POSTGRES_DB"`
+	User          string `env:"POSTGRES_USER"`
+	Password      string `env:"POSTGRES_PASSWORD"`
+	DBAddr        string `env:"POSTGRES_ADDR"`
+	RedisAddr     string `env:"REDIS_ADDR"`
+	RedisPort     string `env:"REDIS_PORT"`
+	RedisPassword string `env:"REDIS_PASSWORD"`
 }
 
 var cfg DatabaseConfig
 
 var ConnectionPool *pgxpool.Pool
+var Redis *redis.Client
 
 func getConfig() *pgxpool.Config {
 	err := cleanenv.ReadEnv(&cfg)
@@ -89,6 +94,15 @@ func InitDB() error {
 		return err
 	}
 
+	return nil
+}
+
+func initRedis() error {
+	Redis = redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisAddr + ":" + cfg.Port,
+		Password: cfg.RedisPassword,
+		DB:       0,
+	})
 	return nil
 }
 

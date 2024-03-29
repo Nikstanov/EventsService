@@ -3,7 +3,11 @@ package models
 import (
 	"BookingService/internal/db"
 	"context"
+	"encoding/json"
+	"errors"
+	"github.com/go-redis/redis"
 	"github.com/jackc/pgx/v5"
+	"strconv"
 	"time"
 )
 
@@ -14,6 +18,14 @@ type Event struct {
 	Location    string    `binding:"required" valid:"stringlength(0|30)"`
 	DateTime    time.Time `binding:"required"`
 	UserID      int
+}
+
+func (e *Event) MarshalBinary() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func (e *Event) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, e)
 }
 
 func (e *Event) Save() error {
@@ -46,17 +58,29 @@ func GetAllEvents() ([]Event, error) {
 }
 
 func GetEventById(id int) (*Event, error) {
-	query := "SELECT * FROM events WHERE id = $1"
-	rows, err := db.ConnectionPool.Query(context.Background(), query, id)
+	var result Event
+	err := db.Redis.Get("event:" + strconv.Itoa(id)).Scan(&result)
+
 	if err != nil {
-		return nil, err
+		if errors.Is(err, redis.Nil) {
+			query := "SELECT * FROM events WHERE id = $1"
+			rows, err := db.ConnectionPool.Query(context.Background(), query, id)
+			if err != nil {
+				return nil, err
+			}
+			defer rows.Close()
+			resValue, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[Event])
+			if err != nil {
+				return nil, err
+			}
+			db.Redis.SetNX("event:"+strconv.Itoa(id), resValue, time.Duration(10000))
+			return &resValue, nil
+		} else {
+			return nil, err
+		}
 	}
-	defer rows.Close()
-	res, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[Event])
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
+
+	return &result, nil
 }
 
 func UpdateEventById(event Event) error {
